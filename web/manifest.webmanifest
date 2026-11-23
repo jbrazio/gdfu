@@ -1,0 +1,35 @@
+{
+  "name": "GFSK DFU",
+  "short_name": "GFSK DFU",
+  "description": "Update nRF52840 devices over long distances, far beyond standard BLE or Wi-Fi OTA range",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0E1821",
+  "theme_color": "#0E1821",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

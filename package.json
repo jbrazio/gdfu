@@ -1,0 +1,47 @@
+{
+  "name": "app",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "web": "npm run dev",
+    "android": "npm run build && npx cap sync android",
+    "ios": "npm run build:ios",
+    "build:ios": "npm run build && npx cap sync ios && xcodebuild -project ios/App/App.xcodeproj -scheme App build",
+    "run:web": "npm run web",
+    "run:android": "npm run build && npx cap run android",
+    "run:ios": "npm run build && npx cap sync ios && npx cap run ios",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx lib/i18n.test.ts && tsx lib/appChrome.test.ts && tsx lib/codec.test.ts && tsx lib/compatibility.test.ts && tsx lib/dfu.test.ts && tsx lib/dfuRecovery.test.ts && tsx lib/androidSplashIcon.test.ts && tsx lib/firmware.test.ts && tsx lib/iosIcon.test.ts && tsx lib/iosSplash.test.ts && tsx lib/proxyFiles.test.ts",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^8.3.0",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "next": "14.2.35",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/web-bluetooth": "^0.0.21",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

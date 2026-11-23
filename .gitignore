@@ -1,0 +1,53 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.tmp/
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Signing material/credentials from scripts/setup-{android,ios}-secrets.py
+/.secrets/
+/docs/superpowers/
+/.superpowers/
+/.claude/
+__pycache__/
+*.py[cod]
+
+# fastlane
+/vendor/bundle/
+/.bundle/
+/fastlane/report.xml
+/fastlane/README.md
+
+/docs/

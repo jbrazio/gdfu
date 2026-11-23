@@ -1,0 +1,21 @@
+Actualice dispositivos nRF52840 a distancia. Las actualizaciones OTA estándar por Bluetooth o Wi-Fi solo funcionan a pocos metros del dispositivo; GFSK DFU envía el firmware mediante un enlace de radio sub-GHz de largo alcance, lo que permite actualizar dispositivos mucho más allá del alcance del BLE o del Wi-Fi.
+
+GFSK DFU es la aplicación complementaria de la plataforma de actualización de firmware GDFU. Su teléfono se comunica por Bluetooth con un proxy GDFU, y el proxy transmite la actualización al dispositivo de destino mediante un enlace de radio GFSK. La aplicación detecta sus dispositivos, verifica el paquete de firmware y envía la actualización. Cuando el dispositivo está cerca, la aplicación también puede actualizarlo directamente por Bluetooth Low Energy.
+
+Nota: la aplicación requiere hardware compatible con GDFU: un dispositivo de destino nRF52840 con el bootloader GDFU y un proxy GDFU para las actualizaciones de largo alcance (sin proxy, solo se pueden actualizar por Bluetooth los dispositivos cercanos). Sin dicho hardware, la aplicación no resulta útil.
+
+FUNCIONES PRINCIPALES
+
+• Actualizar dispositivos mediante un enlace de radio de largo alcance, mucho más allá del alcance habitual del OTA por BLE o Wi-Fi
+• Conectarse a un proxy GDFU por Bluetooth y consultar su versión y sus capacidades
+• Ajustar el perfil de radio y la potencia TX del proxy (10–22 dBm), con lectura de confirmación tras cada cambio
+• Supervisar en tiempo real la intensidad de la señal (RSSI) hacia el proxy para evaluar el enlace antes de actualizar
+• Ver los destinos de actualización al alcance a medida que se detectan; las entradas obsoletas se eliminan automáticamente
+• Cargar paquetes de firmware (manifest.json, firmware.dat y firmware.bin) y guardarlos en el dispositivo para su uso sin conexión
+• Validar cada paquete antes del envío: tipo y revisión del dispositivo, CRC-16 y contenidos no vacíos
+• Seguir el progreso de la actualización y cancelarla en cualquier momento
+• Si una actualización falla, el error permanece en pantalla para que pueda identificar la causa
+
+PRIVACIDAD
+
+Sin cuenta, sin anuncios, sin analíticas. La aplicación no recopila ni comparte datos personales. El permiso de Bluetooth se utiliza únicamente para comunicarse con sus dispositivos.

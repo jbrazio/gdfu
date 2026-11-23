@@ -1,0 +1,3 @@
+app_identifier("pt.meshcore.gdfu")
+package_name("pt.meshcore.gdfu")
+# Play credentials come from SUPPLY_JSON_KEY_DATA (set by the workflows).

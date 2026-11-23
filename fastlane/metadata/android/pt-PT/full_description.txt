@@ -1,0 +1,21 @@
+Atualize dispositivos nRF52840 à distância. O OTA por Bluetooth ou Wi-Fi só funciona a poucos metros do dispositivo; o GFSK DFU envia o firmware por uma ligação de rádio sub-GHz de longo alcance, para atualizar dispositivos muito para além do alcance do BLE ou do Wi-Fi.
+
+O GFSK DFU é a aplicação complementar da plataforma de atualização de firmware GDFU. O telemóvel fala por Bluetooth com um proxy GDFU, e o proxy leva a atualização até ao dispositivo através de uma ligação de rádio GFSK. Encontra os seus dispositivos, verifica o pacote de firmware e envia a atualização. Quando o dispositivo está perto, a aplicação também o pode atualizar diretamente por Bluetooth Low Energy.
+
+Nota: a aplicação requer hardware compatível com GDFU: um dispositivo nRF52840 com o bootloader GDFU e um proxy GDFU para atualizações de longo alcance (sem proxy, só é possível atualizar por Bluetooth dispositivos próximos). Sem eles, não tem utilidade.
+
+O QUE PODE FAZER
+
+• Atualizar dispositivos por uma ligação de rádio de longo alcance, muito para além do alcance normal do OTA por BLE ou Wi-Fi
+• Ligar a um proxy GDFU por Bluetooth e ler a respetiva versão e capacidades
+• Ajustar o perfil de rádio e a potência de TX do proxy (10–22 dBm), com leitura de confirmação após cada alteração
+• Acompanhar a intensidade do sinal (RSSI) até ao proxy, para avaliar a ligação antes de atualizar
+• Ver os dispositivos de destino ao alcance à medida que são descobertos; entradas antigas são removidas automaticamente
+• Carregar pacotes de firmware (manifest.json, firmware.dat e firmware.bin) e guardá-los no dispositivo para utilização offline
+• Validar cada pacote antes do envio: tipo e revisão do dispositivo, CRC-16 e conteúdos não vazios
+• Acompanhar o progresso da atualização e cancelar a qualquer momento
+• Se uma atualização falhar, o erro permanece visível para perceber o que aconteceu
+
+PRIVACIDADE
+
+Sem conta, sem anúncios, sem análises. A aplicação não recolhe nem partilha dados pessoais. A permissão de Bluetooth é usada apenas para comunicar com os seus dispositivos.

@@ -1,0 +1,21 @@
+Aktualisieren Sie nRF52840-Geräte aus der Ferne. Herkömmliche OTA-Updates per Bluetooth oder Wi-Fi funktionieren nur wenige Meter vom Gerät entfernt; GFSK DFU überträgt die Firmware über eine sub-GHz-Funkverbindung mit großer Reichweite, sodass Sie Geräte weit außerhalb der Reichweite von BLE oder Wi-Fi aktualisieren können.
+
+GFSK DFU ist die Begleit-App für die GDFU-Firmware-Update-Lösung. Ihr Smartphone kommuniziert per Bluetooth mit einem GDFU-Proxy, der das Update anschließend über eine GFSK-Funkverbindung an das Zielgerät überträgt. Die App findet Ihre Geräte, prüft Ihr Firmware-Paket und sendet das Update. Befindet sich das Gerät in der Nähe, kann die App es auch direkt per Bluetooth Low Energy aktualisieren.
+
+Hinweis: Die App setzt GDFU-kompatible Hardware voraus: ein nRF52840-Zielgerät mit dem GDFU-Bootloader sowie einen GDFU-Proxy für Updates über große Entfernungen (ohne Proxy können nur Geräte in der Nähe per Bluetooth aktualisiert werden). Ohne diese Hardware bietet die App keinen Nutzen.
+
+FUNKTIONEN
+
+• Geräte über eine Funkverbindung mit großer Reichweite aktualisieren, weit über die übliche Reichweite von BLE- oder Wi-Fi-OTA hinaus
+• Per Bluetooth eine Verbindung zu einem GDFU-Proxy herstellen und dessen Version und Funktionen auslesen
+• Funkprofil und TX-Leistung des Proxys (10–22 dBm) anpassen, wobei jede Änderung zur Bestätigung zurückgelesen wird
+• Die Signalstärke (RSSI) zum Proxy in Echtzeit verfolgen, um die Verbindung vor dem Update zu beurteilen
+• Update-Ziele in Reichweite anzeigen, sobald sie erkannt werden; veraltete Einträge werden automatisch entfernt
+• Firmware-Pakete (manifest.json, firmware.dat und firmware.bin) laden und für die Offline-Nutzung auf Ihrem Gerät speichern
+• Jedes Paket vor dem Senden validieren lassen: Gerätetyp und Revision, CRC-16 und nicht leere Inhalte
+• Den Update-Fortschritt verfolgen und jederzeit abbrechen
+• Schlägt ein Update fehl, bleibt die Fehlermeldung auf dem Bildschirm sichtbar, damit Sie die Ursache nachvollziehen können
+
+DATENSCHUTZ
+
+Kein Konto, keine Werbung, keine Analysen. Die App erfasst und teilt keine personenbezogenen Daten. Die Bluetooth-Berechtigung wird ausschließlich für die Kommunikation mit Ihren Geräten verwendet.

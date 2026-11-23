@@ -1,0 +1,5 @@
+git_url("https://github.com/jbrazio/ios-certificates.git")
+storage_mode("git")
+type("appstore")
+app_identifier(["pt.meshcore.gdfu"])
+# Auth: MATCH_GIT_BASIC_AUTHORIZATION (base64 "x-access-token:<PAT>"); decryption: MATCH_PASSWORD.

@@ -1,0 +1,107 @@
+# Lanes called by .github/workflows/{build,promote,renew-signing,store-listing}.yml.
+# Store listings use fastlane's default layout: metadata/android/<locale>/ (supply), metadata/<locale>/ and
+# screenshots/<locale>/ (deliver). App Store name/description are symlinks to the Play title/full description.
+# Arguments arrive as strings: `fastlane <platform> <lane> code:142 name:2026.11.142 notes:/abs/dir`.
+# `notes` is the output directory of scripts/release-notes.py.
+require "json"
+
+BUNDLE_ID = "pt.meshcore.gdfu"
+TESTFLIGHT_GROUP = "72d2cc0d-3bcb-41f3-99cd-fa683063f98d" # external testers
+ROOT = File.expand_path("..", __dir__)
+SKIP_PLAY_LISTING = { skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true }.freeze
+
+# ASC_KEY_P8 / ASC_ADMIN_KEY_P8 may hold the raw .p8 or its base64.
+def asc_key(admin: false)
+  prefix = admin ? "ASC_ADMIN_" : "ASC_"
+  p8 = ENV.fetch("#{prefix}KEY_P8")
+  app_store_connect_api_key(key_id: ENV.fetch("#{prefix}KEY_ID"), issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+                            key_content: p8, is_key_content_base64: !p8.include?("BEGIN"))
+end
+
+def store_notes(o)
+  JSON.parse(File.read(File.join(o.fetch(:notes), "ios.json")))
+end
+
+platform :android do
+  # Upload the CI-built AAB to internal testing, then promote the same version code to closed testing.
+  lane :beta do |o|
+    code = o.fetch(:code).to_s
+    upload_to_play_store(track: "internal", aab: o.fetch(:aab), release_status: "completed",
+                         metadata_path: File.join(o.fetch(:notes), "android"), **SKIP_PLAY_LISTING)
+    upload_to_play_store(track: "internal", track_promote_to: "alpha", version_code: code,
+                         track_promote_release_status: "completed",
+                         skip_upload_aab: true, skip_upload_changelogs: true, **SKIP_PLAY_LISTING)
+  end
+
+  # Update the Play store listing (text, screenshots, feature graphic, icon). No build or track changes.
+  lane :listing do
+    # supply only uploads metadata alongside a release; use the latest internal one, which build.yml always fills.
+    code = google_play_track_version_codes(track: "internal").max
+    upload_to_play_store(track: "internal", version_code: code, skip_upload_aab: true, skip_upload_apk: true,
+                         skip_upload_changelogs: true, sync_image_upload: true)
+  end
+
+  # Release an already-uploaded version code to production. No upload.
+  lane :promote do |o|
+    code = o.fetch(:code).to_s
+    if google_play_track_version_codes(track: "production").map(&:to_s).include?(code)
+      UI.success("Version code #{code} is already in production")
+      next
+    end
+    # Forced, because Play only reports a track's current release and a newer build may have replaced it in alpha.
+    upload_to_play_store(track: "alpha", track_promote_to: "production", track_promote_force: true,
+                         version_code: code, version_name: o.fetch(:name),
+                         track_promote_release_status: "completed", skip_upload_aab: true,
+                         metadata_path: File.join(o.fetch(:notes), "android"), **SKIP_PLAY_LISTING)
+  end
+end
+
+platform :ios do
+  # Build, sign with the match certificate and send to TestFlight internal + external testers.
+  lane :beta do |o|
+    asc_key
+    setup_ci
+    match(readonly: true)
+    project = File.join(ROOT, "ios/App/App.xcodeproj")
+    pbxproj = File.join(project, "project.pbxproj")
+    File.write(pbxproj, File.read(pbxproj)
+      .gsub(/CURRENT_PROJECT_VERSION = [^;]+;/, "CURRENT_PROJECT_VERSION = #{o.fetch(:code)};")
+      .gsub(/MARKETING_VERSION = [^;]+;/, "MARKETING_VERSION = #{o.fetch(:name)};"))
+    update_code_signing_settings(path: project, targets: ["App"], use_automatic_signing: false,
+                                 team_id: ENV.fetch("sigh_#{BUNDLE_ID}_appstore_team-id"),
+                                 profile_name: ENV.fetch("sigh_#{BUNDLE_ID}_appstore_profile-name"),
+                                 code_sign_identity: "Apple Distribution")
+    build_app(project: project, scheme: "App", configuration: "Release", export_method: "app-store",
+              output_directory: o.fetch(:output), output_name: "gdfu_ios-#{o.fetch(:name)}.ipa")
+    # ponytail: TestFlight notes in en-GB only; add locales once the TestFlight listing has them.
+    upload_to_testflight(groups: [TESTFLIGHT_GROUP], distribute_external: true, notify_external_testers: true,
+                         localized_build_info: { "en-GB" => { whats_new: store_notes(o).fetch("en-GB") } })
+  end
+
+  # Submit an existing TestFlight build for App Store review. No upload.
+  lane :promote do |o|
+    asc_key
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    listed = app.fetch_latest_app_info.get_app_info_localizations.map(&:locale)
+    upload_to_app_store(app_version: o.fetch(:name), build_number: o.fetch(:code).to_s,
+                        skip_binary_upload: true, skip_screenshots: true, force: true,
+                        release_notes: store_notes(o).slice(*listed),
+                        submit_for_review: true, automatic_release: true, run_precheck_before_submit: false,
+                        submission_information: { add_id_info_uses_idfa: false,
+                                                  export_compliance_uses_encryption: false })
+  end
+
+  # Update the App Store listing (text + screenshots) of the version being edited. Promote never touches it.
+  lane :listing do
+    asc_key
+    upload_to_app_store(overwrite_screenshots: true, skip_binary_upload: true, skip_app_version_update: true,
+                        run_precheck_before_submit: false, force: true)
+  end
+
+  # Create a new certificate/profile in the match repo when the stored ones are missing or expired.
+  lane :renew_signing do
+    asc_key(admin: true)
+    setup_ci
+    match(readonly: false)
+  end
+end

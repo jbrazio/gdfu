@@ -1,0 +1,21 @@
+Atualize dispositivos nRF52840 à distância. O OTA por Bluetooth ou Wi-Fi funciona apenas a poucos metros do dispositivo; o GFSK DFU envia o firmware por um link de rádio sub-GHz de longo alcance, permitindo atualizar dispositivos muito além do alcance do BLE ou do Wi-Fi.
+
+O GFSK DFU é o aplicativo complementar da plataforma de atualização de firmware GDFU. O celular se comunica por Bluetooth com um proxy GDFU, e o proxy leva a atualização até o dispositivo de destino por um link de rádio GFSK. O aplicativo localiza seus dispositivos, verifica o pacote de firmware e envia a atualização. Quando o dispositivo está próximo, o aplicativo também pode atualizá-lo diretamente por Bluetooth Low Energy.
+
+Observação: o aplicativo requer hardware compatível com GDFU: um dispositivo nRF52840 com o bootloader GDFU e um proxy GDFU para atualizações de longo alcance (sem proxy, apenas dispositivos próximos podem ser atualizados por Bluetooth). Sem esse hardware, o aplicativo não tem utilidade.
+
+O QUE VOCÊ PODE FAZER
+
+• Atualizar dispositivos por um link de rádio de longo alcance, muito além do alcance normal do OTA por BLE ou Wi-Fi
+• Conectar-se a um proxy GDFU por Bluetooth e consultar sua versão e seus recursos
+• Ajustar o perfil de rádio e a potência TX do proxy (10–22 dBm), com confirmação por leitura após cada alteração
+• Acompanhar em tempo real a intensidade do sinal (RSSI) até o proxy, para avaliar o link antes de atualizar
+• Visualizar os destinos de atualização ao alcance à medida que são descobertos; entradas antigas são removidas automaticamente
+• Carregar pacotes de firmware (manifest.json, firmware.dat e firmware.bin) e salvá-los no dispositivo para uso offline
+• Validar cada pacote antes do envio: tipo e revisão do dispositivo, CRC-16 e conteúdos não vazios
+• Acompanhar o progresso da atualização e cancelar a qualquer momento
+• Se uma atualização falhar, o erro permanece na tela para que você identifique o que aconteceu
+
+PRIVACIDADE
+
+Sem conta, sem anúncios, sem análises. O aplicativo não coleta nem compartilha dados pessoais. A permissão de Bluetooth é usada apenas para comunicação com seus dispositivos.

@@ -1,0 +1,1 @@
+Atualize dispositivos nRF52840 a longas distâncias.

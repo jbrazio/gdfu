@@ -1,0 +1,1 @@
+meshcore,Firmware,DFU,OTA,nRF52840,GFSK,Funk,Bootloader,Update,BLE

@@ -1,0 +1,16 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+include ':app'
+include ':capacitor-cordova-android-plugins'
+project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
+
+// Capacitor plugins still query version properties on their own project. Keep
+// local copies until Capacitor's Gradle 10-compatible templates supersede this.
+gradle.beforeProject { project ->
+    if (project != rootProject) {
+        project.rootProject.ext.properties.each { name, value -> project.ext.set(name, value) }
+    }
+}
+
+apply from: 'capacitor.settings.gradle'

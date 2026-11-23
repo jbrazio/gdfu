@@ -1,0 +1,1 @@
+Aktualisieren Sie nRF52840-Geräte über große Entfernungen.

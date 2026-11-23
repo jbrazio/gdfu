@@ -1,0 +1,1 @@
+meshcore,固件,DFU,OTA,nRF52840,GFSK,无线电,bootloader,更新,蓝牙

@@ -1,0 +1,1 @@
+"NSBluetoothAlwaysUsageDescription" = "需要使用蓝牙连接 GFSK DFU proxy，以发现目标设备并传输固件。";

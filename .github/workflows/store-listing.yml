@@ -1,0 +1,33 @@
+name: Store listing
+
+# Updates both store listings (text and screenshots, all eight languages) from fastlane/:
+#   metadata/android/<locale>/   Play text, screenshots, feature graphic, icon (supply)
+#   metadata/<locale>/           App Store text; name and description link to the Play files (deliver)
+#   screenshots/<locale>/        App Store screenshots (deliver)
+# Builds and release tracks are not touched. Merge listing changes first.
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    if: github.triggering_actor == 'jbrazio'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios]
+    runs-on: ubuntu-latest # API calls only
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: bundle exec fastlane ${{ matrix.platform }} listing
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}

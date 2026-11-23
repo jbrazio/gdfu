@@ -1,0 +1,21 @@
+Mettez à jour vos appareils nRF52840 à distance. Les mises à jour OTA classiques par Bluetooth ou Wi-Fi ne fonctionnent qu'à quelques mètres de l'appareil ; GFSK DFU transmet le firmware via une liaison radio sub-GHz longue portée, ce qui permet de mettre à jour des appareils situés bien au-delà de la portée du BLE ou du Wi-Fi.
+
+GFSK DFU est l'application compagnon de la solution de mise à jour de firmware GDFU. Votre téléphone communique en Bluetooth avec un proxy GDFU, qui transmet ensuite la mise à jour à la cible via une liaison radio GFSK. L'application détecte vos appareils, vérifie votre package de firmware et envoie la mise à jour. Lorsque l'appareil est à proximité, l'application peut également le mettre à jour directement en Bluetooth Low Energy.
+
+Remarque : l'application nécessite du matériel compatible GDFU : une cible nRF52840 équipée du bootloader GDFU, ainsi qu'un proxy GDFU pour les mises à jour longue portée (sans proxy, seuls les appareils à proximité peuvent être mis à jour en Bluetooth). Sans ce matériel, l'application n'est d'aucune utilité.
+
+FONCTIONNALITÉS
+
+• Mettre à jour des appareils via une liaison radio longue portée, bien au-delà de la portée habituelle de l'OTA BLE ou Wi-Fi
+• Se connecter à un proxy GDFU en Bluetooth et consulter sa version et ses capacités
+• Régler le profil radio et la puissance TX du proxy (10–22 dBm), chaque modification étant relue pour confirmation
+• Suivre en temps réel la puissance du signal (RSSI) vers le proxy afin d'évaluer la liaison avant la mise à jour
+• Afficher les cibles à portée au fur et à mesure de leur détection ; les entrées obsolètes sont supprimées automatiquement
+• Charger des packages de firmware (manifest.json, firmware.dat et firmware.bin) et les enregistrer sur votre appareil pour une utilisation hors ligne
+• Faire valider chaque package avant l'envoi : type et révision de l'appareil, CRC-16 et contenus non vides
+• Suivre la progression de la mise à jour et l'annuler à tout moment
+• En cas d'échec, l'erreur reste affichée à l'écran afin que vous puissiez en identifier la cause
+
+CONFIDENTIALITÉ
+
+Aucun compte, aucune publicité, aucune analyse. L'application ne collecte ni ne partage aucune donnée personnelle. L'autorisation Bluetooth sert uniquement à communiquer avec vos appareils.

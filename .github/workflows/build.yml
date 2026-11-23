@@ -1,0 +1,171 @@
+name: Build
+
+# Merges to master: build once, ship to testers, publish a GitHub pre-release.
+# Production is a separate manual step (promote.yml) that reuses these exact store builds.
+# Push-only on purpose: every run is a build, so build numbers stay consecutive. PRs use test.yml.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: false # never abort a store upload
+
+env:
+  # Build number N = run_number + OFFSET (versionCode / CFBundleVersion). Moved from jbrazio/gdfu-application
+  # after build 39, so run #1 here is build 40.
+  # If this file is ever renamed or recreated (run_number restarts at 1), set OFFSET to the last build number.
+  VERSION_OFFSET: 39
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.v.outputs.code }}
+      name: ${{ steps.v.outputs.name }}
+    steps:
+      - id: v
+        run: |
+          code=$((GITHUB_RUN_NUMBER + VERSION_OFFSET))
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "name=$(date -u +%Y.%-m).$code" >> "$GITHUB_OUTPUT"
+
+  android:
+    needs: [test, version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CODE: ${{ needs.version.outputs.code }}
+      NAME: ${{ needs.version.outputs.name }}
+      RELEASE_VERSION: ${{ needs.version.outputs.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      # Gradle's daemon JVM (android/gradle/gradle-daemon-jvm.properties) is auto-provisioned;
+      # this JDK only needs to launch the wrapper.
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - run: python3 scripts/release-notes.py CHANGELOG.md "$RUNNER_TEMP/notes"
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+
+      - name: Decode upload keystore
+        run: echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Build signed AAB + APK
+        working-directory: android
+        run: ./gradlew --no-daemon bundleRelease assembleRelease -PversionCode="$CODE" -PversionName="$NAME"
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Collect artifacts
+        run: |
+          mkdir dist
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/gdfu_android-$NAME.aab"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/gdfu_android-$NAME.apk"
+
+      # Workflow artifact only (kept 90 days), uploaded before Play so a failed upload still leaves the files.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-release
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Play internal + closed testing
+        run: bundle exec fastlane android beta code:"$CODE" aab:"$PWD/dist/gdfu_android-$NAME.aab" notes:"$RUNNER_TEMP/notes"
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"
+
+  ios:
+    needs: [test, version]
+    runs-on: macos-26
+    timeout-minutes: 40
+    env:
+      CODE: ${{ needs.version.outputs.code }}
+      NAME: ${{ needs.version.outputs.name }}
+      RELEASE_VERSION: ${{ needs.version.outputs.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - run: python3 scripts/release-notes.py CHANGELOG.md "$RUNNER_TEMP/notes"
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+
+      - name: Build, sign and upload to TestFlight
+        run: bundle exec fastlane ios beta code:"$CODE" name:"$NAME" output:"$PWD/dist" notes:"$RUNNER_TEMP/notes"
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: ios-release
+          path: dist/*.ipa
+          if-no-files-found: ignore
+
+  # One pre-release (tag + notes, no binaries) per build, even if a store upload failed.
+  release:
+    needs: [version, android, ios]
+    if: ${{ !cancelled() && needs.version.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: v${{ needs.version.outputs.name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: python3 scripts/release-notes.py CHANGELOG.md "$RUNNER_TEMP/notes"
+      - name: Create GitHub pre-release
+        run: |
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" \
+            --prerelease --notes-file "$RUNNER_TEMP/notes/github.md"
+
+      # Keep the 10 newest pre-releases as promotion candidates (TestFlight builds expire after 90 days).
+      - name: Delete older pre-releases
+        run: |
+          gh release list --limit 200 --json tagName,isPrerelease,createdAt \
+            --jq '[.[] | select(.isPrerelease)] | sort_by(.createdAt) | reverse | .[10:][].tagName' |
+          while IFS= read -r tag; do
+            gh release delete "$tag" --cleanup-tag --yes
+          done

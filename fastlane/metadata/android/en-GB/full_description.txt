@@ -1,0 +1,21 @@
+Update nRF52840 devices from far away. Standard Bluetooth and Wi-Fi OTA only work within a few metres of the device; GFSK DFU sends firmware over a long-range sub-GHz radio link, so you can update devices well beyond the reach of BLE or Wi-Fi.
+
+GFSK DFU is the companion app for the GDFU firmware-update stack. Your phone talks over Bluetooth to a GDFU proxy, and the proxy carries the update to the target over a GFSK radio link. It finds your devices, checks your firmware package and sends the update. When the device is close, the app can also update it directly over Bluetooth Low Energy.
+
+Note: the app needs GDFU-compatible hardware: an nRF52840 target running the GDFU bootloader, and a GDFU proxy for long-range updates (without a proxy, only nearby devices can be updated over Bluetooth). It does nothing useful without it.
+
+WHAT YOU CAN DO
+
+• Update devices over a long-range radio link, far beyond normal BLE or Wi-Fi OTA range
+• Connect to a GDFU proxy over Bluetooth and read its version and capabilities
+• Adjust the proxy's radio profile and TX power (10–22 dBm), with each change read back to confirm
+• Watch live signal strength (RSSI) to the proxy, so you can judge the link before you update
+• See update targets in range as they are discovered; stale entries are dropped automatically
+• Load firmware packages (manifest.json, firmware.dat and firmware.bin) and keep them stored on your device for offline use
+• Have every package validated before it is sent: device type and revision, CRC-16 and non-empty payloads
+• Follow update progress and cancel at any time
+• If an update fails, the error stays on screen so you can see what went wrong
+
+PRIVACY
+
+No account, no ads, no analytics. The app collects and shares no personal data. Bluetooth permission is used only to talk to your devices.

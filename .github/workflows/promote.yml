@@ -1,0 +1,102 @@
+name: Promote to production
+
+# Releases an existing build (from build.yml) to the stores. Nothing is rebuilt or re-uploaded:
+# Play moves the version code to production, App Store Connect submits the TestFlight build for review.
+# Starting this workflow is the approval; only the owner may run it.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to promote, e.g. 2026.11.142 (see the GitHub pre-releases)
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    if: github.triggering_actor == 'jbrazio'
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.v.outputs.code }}
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - id: v
+        run: |
+          [[ "$VERSION" =~ ^[0-9]{4}\.[0-9]{1,2}\.([0-9]+)$ ]] || { echo "::error::Version must look like 2026.11.142"; exit 1; }
+          gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json tagName >/dev/null \
+            || { echo "::error::No GitHub release v$VERSION"; exit 1; }
+          echo "code=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+  android:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERSION: ${{ inputs.version }}
+      CODE: ${{ needs.resolve.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/v${{ inputs.version }}
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: python3 scripts/release-notes.py CHANGELOG.md "$RUNNER_TEMP/notes"
+      - run: bundle exec fastlane android promote code:"$CODE" name:"$VERSION" notes:"$RUNNER_TEMP/notes"
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
+  ios:
+    needs: resolve
+    runs-on: ubuntu-latest # store API calls only, no Xcode needed
+    timeout-minutes: 15
+    env:
+      VERSION: ${{ inputs.version }}
+      CODE: ${{ needs.resolve.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/v${{ inputs.version }}
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: python3 scripts/release-notes.py CHANGELOG.md "$RUNNER_TEMP/notes"
+      - run: bundle exec fastlane ios promote code:"$CODE" name:"$VERSION" notes:"$RUNNER_TEMP/notes"
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+
+  # Same tag: only the release flag and the changelog change.
+  finalize:
+    needs: [android, ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+      - run: gh release edit "v$VERSION" --prerelease=false --latest
+      # GITHUB_TOKEN pushes don't start workflows, so this commit doesn't trigger a build.
+      - run: |
+          git show "v$VERSION:CHANGELOG.md" > "$RUNNER_TEMP/tagged.md"
+          python3 scripts/release-notes.py cut CHANGELOG.md "$VERSION" "$(date -u +%F)" "$RUNNER_TEMP/tagged.md"
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Release $VERSION [skip ci]"
+          git push origin HEAD:master

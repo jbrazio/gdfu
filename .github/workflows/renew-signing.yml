@@ -1,0 +1,27 @@
+name: Renew iOS signing
+
+# Run when the distribution certificate or App Store profile is near expiry (about once a year).
+# match creates replacements with the Admin API key and pushes them to jbrazio/ios-certificates.
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  renew:
+    if: github.triggering_actor == 'jbrazio'
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: bundle exec fastlane ios renew_signing
+        env:
+          ASC_ADMIN_KEY_ID: ${{ secrets.ASC_ADMIN_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_ADMIN_KEY_P8: ${{ secrets.ASC_ADMIN_KEY_P8 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION_RW }}
