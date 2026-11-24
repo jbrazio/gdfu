@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Format inspired
 
 ## [Unreleased]
 
+## [2026.11.40] - 2026-11-24
+
 ### Added
 
 - Available in eight languages: English (British), Portuguese (European and Brazilian), Chinese (Simplified), French, German, Korean and Spanish, selected automatically from the device language.
@@ -18,7 +20,6 @@ All notable changes to this project are documented in this file. Format inspired
 - Refreshed the tutorial setup illustrations and reduced the Android app size with code and resource shrinking.
 - Firmware updates on iPhone stream data packets back-to-back, keeping the proxy buffer full instead of slowing down and failing mid-update.
 - Bluetooth signal strength refreshes every 10 seconds during firmware updates on iOS and Android, instead of every second.
-
 - Redesigned interface with numbered cards (1–4) that follow the update flow and a new colour scheme in light and dark mode.
 - Update card: a checklist shows when the proxy, target and firmware are ready. During an update it shows a percentage, the time left and a reminder to keep the phone near the proxy, then a validating message while the device checks the new firmware and restarts.
 - Firmware card: saved firmware is listed first, showing board, version, size and source. Downloads show only repeater builds, selected by board name.
@@ -35,3 +36,4 @@ All notable changes to this project are documented in this file. Format inspired
 - Retrying straight after a failed update now explains that the target is still busy and that you can retry in about 30 seconds, instead of reporting a profile mismatch.
 - Dropdown menus no longer fill the screen, and long names wrap.
 - The Android back button closes open menus and dialogs.
+
