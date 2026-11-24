@@ -100,3 +100,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -am "Release $VERSION [skip ci]"
           git push origin HEAD:master
+
