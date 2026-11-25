@@ -90,8 +90,10 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+          # Deploy key is the only bypass on the master ruleset (personal repos can't bypass the Actions bot).
+          ssh-key: ${{ secrets.CHANGELOG_DEPLOY_KEY }}
       - run: gh release edit "v$VERSION" --prerelease=false --latest
-      # GITHUB_TOKEN pushes don't start workflows, so this commit doesn't trigger a build.
+      # Deploy-key pushes do start workflows; "[skip ci]" in the message keeps build.yml from running.
       - run: |
           git show "v$VERSION:CHANGELOG.md" > "$RUNNER_TEMP/tagged.md"
           python3 scripts/release-notes.py cut CHANGELOG.md "$VERSION" "$(date -u +%F)" "$RUNNER_TEMP/tagged.md"
