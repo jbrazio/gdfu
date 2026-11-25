@@ -10,6 +10,7 @@ export const fr: Record<MessageKey, string> = {
   version: "Version {version}",
   about: "À propos",
   close: "Fermer",
+  showTutorial: "Afficher le tutoriel",
   aboutBody: "Mises à jour de firmware longue portée pour les appareils nRF52840 via GFSK.",
   creditAuthor: "Auteur",
   specialThanks: "Remerciements particuliers à",

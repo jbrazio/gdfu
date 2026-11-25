@@ -10,6 +10,7 @@ export const de: Record<MessageKey, string> = {
   version: "Version {version}",
   about: "Info",
   close: "Schließen",
+  showTutorial: "Tutorial anzeigen",
   aboutBody: "Firmware-Updates mit großer Reichweite für nRF52840-Geräte über GFSK.",
   creditAuthor: "Autor",
   specialThanks: "Besonderer Dank an",

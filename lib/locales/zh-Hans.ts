@@ -10,6 +10,7 @@ export const zhHans: Record<MessageKey, string> = {
   version: "版本 {version}",
   about: "关于",
   close: "关闭",
+  showTutorial: "显示教程",
   aboutBody: "通过 GFSK 为 nRF52840 设备提供远距离固件更新。",
   creditAuthor: "作者",
   specialThanks: "特别鸣谢",

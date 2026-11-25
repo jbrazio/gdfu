@@ -24,6 +24,7 @@ const enGB = {
   version: "Version {version}",
   about: "About",
   close: "Close",
+  showTutorial: "Show tutorial",
   aboutBody: "Long-range firmware updates for nRF52840 devices over GFSK.",
   creditAuthor: "Author",
   specialThanks: "Special thanks to",

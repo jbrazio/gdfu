@@ -9,6 +9,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useLocale, useT, type MessageKey } from "@/lib/i18n";
 
 const SEEN_KEY = "tutorialSeen";
+export const SHOW_TUTORIAL_EVENT = "gdfu:show-tutorial";
 
 type Page = { image: string; title: MessageKey; body: MessageKey; links?: [MessageKey, string][] };
 
@@ -50,6 +51,16 @@ export function Tutorial(): ReactElement {
 
   // After mount: the static export has no localStorage at build time.
   useEffect(() => setOpen(!localStorage.getItem(SEEN_KEY)), []);
+
+  // About (in the layout, outside this tree) reopens it via a window event.
+  useEffect(() => {
+    const show = (): void => {
+      setStep(0);
+      setOpen(true);
+    };
+    window.addEventListener(SHOW_TUTORIAL_EVENT, show);
+    return () => window.removeEventListener(SHOW_TUTORIAL_EVENT, show);
+  }, []);
 
   const close = (): void => {
     localStorage.setItem(SEEN_KEY, "1");
