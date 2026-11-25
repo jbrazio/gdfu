@@ -18,12 +18,13 @@ import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import { ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
+import { SHOW_TUTORIAL_EVENT } from "@/components/Tutorial";
 import { useT } from "@/lib/i18n";
 import { theme } from "@/theme";
 
 const WEBSITE = "https://meshcore.pt";
-const AUTHOR = "João Brázio aka kasvoton";
-const THANKS = "Miguel Santos aka Mike05, Mast3RijO";
+const AUTHOR = "João Brázio (kasvoton)";
+const THANKS = "Miguel Santos (Mike05), Mast3Rij0, César Coelho, Miguel Bento, José Alves";
 const credits: { name: string; license: string }[] = JSON.parse(process.env.NEXT_PUBLIC_CREDITS ?? "[]");
 // One line per licence: "MIT: next, react, …" (Object.groupBy is ES2024; reduce keeps older WebViews happy).
 const byLicence = Object.entries(
@@ -80,7 +81,15 @@ export function About({ version }: { version: string }): React.ReactElement {
             <Typography variant="body1">{THANKS}</Typography>
           </Section>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ bgcolor: "background.default", borderTop: 1, borderColor: "divider", px: 2, py: 1.5 }}>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              window.dispatchEvent(new Event(SHOW_TUTORIAL_EVENT));
+            }}
+          >
+            {t("showTutorial")}
+          </Button>
           <Button onClick={() => setOpen(false)}>{t("close")}</Button>
         </DialogActions>
       </Dialog>

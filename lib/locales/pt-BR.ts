@@ -10,6 +10,7 @@ export const ptBR: Record<MessageKey, string> = {
   version: "Versão {version}",
   about: "Sobre",
   close: "Fechar",
+  showTutorial: "Mostrar tutorial",
   aboutBody: "Atualizações de firmware de longo alcance para dispositivos nRF52840 via GFSK.",
   creditAuthor: "Autor",
   specialThanks: "Agradecimentos especiais a",

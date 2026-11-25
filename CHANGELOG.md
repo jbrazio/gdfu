@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Format inspired
 
 ## [Unreleased]
 
+### Added
+
+- The tutorial can be opened again from the About dialog.
+
 ## [2026.11.40] - 2026-11-24
 
 ### Added

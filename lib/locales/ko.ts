@@ -10,6 +10,7 @@ export const ko: Record<MessageKey, string> = {
   version: "버전 {version}",
   about: "정보",
   close: "닫기",
+  showTutorial: "튜토리얼 보기",
   aboutBody: "GFSK를 통한 nRF52840 기기용 장거리 firmware 업데이트.",
   creditAuthor: "개발자",
   specialThanks: "감사의 말씀",
