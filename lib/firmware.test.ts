@@ -262,6 +262,17 @@ async function runFirmwarePackageTests(): Promise<void> {
     buildZip([{ name: "..\\firmware.bin", data: app }, required[0], required[1]]),
     "a backslash path must be rejected",
   );
+
+  // ZephCore packages use zephyr.dat/zephyr.bin; mixing the two naming schemes is rejected.
+  const zephyr = await parseFirmwareZip(
+    "zephyr.zip",
+    buildZip([required[0], { name: "zephyr.bin", data: app }, { name: "zephyr.dat", data: dat }]),
+  );
+  assert.equal(zephyr.sizeBytes, app.length);
+  await rejected(
+    buildZip([required[0], required[1], { name: "zephyr.bin", data: app }]),
+    "mixed firmware.dat and zephyr.bin must be rejected",
+  );
 }
 
 if (typeof process !== "undefined" && process.argv[1]?.endsWith("firmware.test.ts")) {
