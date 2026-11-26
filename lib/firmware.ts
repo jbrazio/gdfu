@@ -76,8 +76,8 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
     const extraLength = view.getUint16(offset + 28, true);
     const nameStart = offset + 30;
     const name = encoder.decode(new Uint8Array(file, nameStart, nameLength));
-    // Mirror the proxy: a package is exactly manifest.json, firmware.dat and
-    // firmware.bin. Anything else (extra files, directories, paths, repeats)
+    // Mirror the proxy: a package is exactly manifest.json plus firmware.dat and
+    // firmware.bin (or ZephCore's zephyr.dat and zephyr.bin). Anything else (extra files, directories, paths, repeats)
     // is rejected here rather than after a long BLE upload.
     if (!REQUIRED_PACKAGE_ENTRIES.has(name)) {
       throw new FirmwareFormatError("errZipUnexpected", { name: JSON.stringify(name) });
@@ -118,7 +118,14 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
 const KNOWN_DEVICE_TYPES = new Set([82]); // Heltec T114 (PCA10059-style type 0x52)
 // GFSK target family shared with the proxy validator (proxy/src/gdfu_file.h).
 const KNOWN_DEVICE_REVISIONS = new Set([65535]);
-const REQUIRED_PACKAGE_ENTRIES = new Set(["manifest.json", "firmware.dat", "firmware.bin"]);
+const REQUIRED_PACKAGE_ENTRIES = new Set([
+  "manifest.json",
+  "firmware.dat",
+  "firmware.bin",
+  // ZephCore (MeshCore Zephyr port) ships the same Nordic DFU package with zephyr.* names.
+  "zephyr.dat",
+  "zephyr.bin",
+]);
 
 /**
  * Parse and validate a Nordic DFU zip. Throws FirmwareFormatError with a
@@ -128,9 +135,11 @@ const REQUIRED_PACKAGE_ENTRIES = new Set(["manifest.json", "firmware.dat", "firm
 export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise<FirmwareImage> {
   const entries = await readZipEntries(file);
   const manifestRaw = entries.get("manifest.json");
-  const initData = entries.get("firmware.dat");
-  const appData = entries.get("firmware.bin");
-  if (!manifestRaw || !initData || !appData) {
+  const prefix = entries.has("zephyr.bin") ? "zephyr" : "firmware";
+  const initData = entries.get(`${prefix}.dat`);
+  const appData = entries.get(`${prefix}.bin`);
+  // Exactly three entries: rejects mixed firmware.*/zephyr.* packages.
+  if (!manifestRaw || !initData || !appData || entries.size !== 3) {
     throw new FirmwareFormatError("errPackageEntries");
   }
   let manifestJson: {
