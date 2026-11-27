@@ -7,7 +7,7 @@ All notable changes to this project are documented in this file. Format inspired
 ### Added
 
 - The tutorial can be opened again from the About dialog.
-- Firmware ZIPs from ZephCore (MeshCore Zephyr port), which contain `zephyr.bin` and `zephyr.dat`, can be imported and flashed.
+- Firmware ZIPs are accepted whatever `.dat` and `.bin` file names their `manifest.json` gives, so ZephCore and other renamed packages can be imported and flashed.
 
 ## [2026.11.40] - 2026-11-24
 
