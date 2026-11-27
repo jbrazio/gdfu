@@ -305,6 +305,20 @@ async function runFirmwarePackageTests(): Promise<void> {
   await packageError(named({ bin_file: "app.bin", dat_file: 1 }), appPair, "non-string dat_file");
   await packageError(named(appFiles), [...appPair, { name: "readme.txt", data: dat }], "unrelated 4th entry");
   await packageError(named(appFiles), [{ name: "app.dat", data: new Uint8Array(0) }, appPair[1]], "empty dat entry");
+  // Raw manifest text the proxy's plain scanner would reject but JSON.parse accepts.
+  const rawManifest = (text: string) => new TextEncoder().encode(text);
+  const body = (files: string) =>
+    `{"manifest":{"application":{${files},"init_packet_data":{"device_type":82,"device_revision":65535,"application_version":1,"firmware_crc16":${crc16Nordic(app)},"softdevice_req":[182]}},"dfu_version":0.5}}`;
+  await parseFirmwareZip("raw.zip", buildZip([
+    { name: "manifest.json", data: rawManifest(body('"bin_file" : "app.bin","dat_file":"app.dat"')) },
+    ...appPair,
+  ]));
+  await packageError(rawManifest(body('"bin_file":"app\\u002ebin","dat_file":"app.dat"')), appPair, "escape in bin_file");
+  await packageError(rawManifest(body('"bin_file":"app.bin","dat_file":"app.dat","dat_file":"app.dat"')), appPair, "duplicate dat_file key");
+  await packageError(rawManifest(body('"bin_file":"app.bin","bin_file":"app.bin","dat_file":"app.dat"')), appPair, "duplicate bin_file key");
+  await packageError(named({ bin_file: "app.bin", dat_file: "" }), [{ name: "", data: dat }, appPair[1]], "empty dat_file");
+  await packageError(named({ bin_file: "", dat_file: "app.dat" }), [appPair[0], { name: "", data: app }], "empty bin_file");
+
   const long = "a".repeat(59);
   await parseFirmwareZip("long.zip", buildZip([
     { name: "manifest.json", data: named({ bin_file: `${long}.bin`, dat_file: `${long}.dat` }) },

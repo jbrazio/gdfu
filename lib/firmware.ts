@@ -107,6 +107,17 @@ const KNOWN_DEVICE_TYPES = new Set([82]); // Heltec T114 (PCA10059-style type 0x
 const KNOWN_DEVICE_REVISIONS = new Set([65535]);
 
 /**
+ * The proxy reads these two names with a plain scanner: it rejects escapes and
+ * repeated keys, which JSON.parse silently resolves. Require the same here.
+ */
+function isPlainUniqueString(text: string, key: string, parsed: string): boolean {
+  return (
+    text.match(new RegExp(`"${key}"\\s*:`, "g"))?.length === 1 &&
+    new RegExp(`"${key}"\\s*:\\s*"([^"\\\\]*)"`).exec(text)?.[1] === parsed
+  );
+}
+
+/**
  * Parse and validate a Nordic DFU zip. Throws FirmwareFormatError with a
  * user-facing reason when the package cannot be flashed to the supported
  * target.
@@ -117,6 +128,7 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
   if (!manifestRaw) {
     throw new FirmwareFormatError("errPackageEntries");
   }
+  const manifestText = new TextDecoder().decode(manifestRaw);
   let manifestJson: {
     manifest?: {
       application?: {
@@ -134,7 +146,7 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
     };
   };
   try {
-    manifestJson = JSON.parse(new TextDecoder().decode(manifestRaw));
+    manifestJson = JSON.parse(manifestText);
   } catch {
     throw new FirmwareFormatError("errManifestJson");
   }
@@ -144,6 +156,10 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
   if (
     typeof datName !== "string" ||
     typeof binName !== "string" ||
+    !datName ||
+    !binName ||
+    !isPlainUniqueString(manifestText, "dat_file", datName) ||
+    !isPlainUniqueString(manifestText, "bin_file", binName) ||
     new Set([datName, binName, "manifest.json"]).size !== 3 ||
     entries.size !== 3
   ) {
