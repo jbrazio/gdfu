@@ -319,6 +319,20 @@ async function runFirmwarePackageTests(): Promise<void> {
   await packageError(named({ bin_file: "app.bin", dat_file: "" }), [{ name: "", data: dat }, appPair[1]], "empty dat_file");
   await packageError(named({ bin_file: "", dat_file: "app.dat" }), [appPair[0], { name: "", data: app }], "empty bin_file");
 
+  const badName = buildZip([{ name: "manifest.json", data: named(appFiles) }, ...appPair]);
+  new Uint8Array(badName)[30 + "manifest.json".length - 1] = 0xff; // invalid UTF-8 in the entry name
+  await assert.rejects(
+    parseFirmwareZip("bad.zip", badName),
+    (error: unknown) => error instanceof FirmwareFormatError && error.key === "errPackageEntries",
+    "invalid UTF-8 entry name",
+  );
+  const badManifest = new Uint8Array([0x7b, 0xff, 0x7d]);
+  await assert.rejects(
+    parseFirmwareZip("bad.zip", buildZip([{ name: "manifest.json", data: badManifest }, ...appPair])),
+    (error: unknown) => error instanceof FirmwareFormatError && error.key === "errManifestJson",
+    "invalid UTF-8 manifest",
+  );
+
   const long = "a".repeat(59);
   await parseFirmwareZip("long.zip", buildZip([
     { name: "manifest.json", data: named({ bin_file: `${long}.bin`, dat_file: `${long}.dat` }) },

@@ -58,7 +58,7 @@ const MAX_ENTRY_NAME_BYTES = 63;
 export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uint8Array>> {
   const view = new DataView(file);
   const entries = new Map<string, Uint8Array>();
-  const encoder = new TextDecoder();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
   // Walk local file headers from the start; nrfutil zips are written
   // sequentially without data descriptors.
   let offset = 0;
@@ -72,7 +72,13 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
     const nameLength = view.getUint16(offset + 26, true);
     const extraLength = view.getUint16(offset + 28, true);
     const nameStart = offset + 30;
-    const name = encoder.decode(new Uint8Array(file, nameStart, nameLength));
+    // Fatal decoding: the proxy compares raw bytes, so invalid UTF-8 must not become U+FFFD.
+    let name: string;
+    try {
+      name = decoder.decode(new Uint8Array(file, nameStart, nameLength));
+    } catch {
+      throw new FirmwareFormatError("errPackageEntries");
+    }
     // Mirror the proxy: long names are rejected here rather than after a long BLE upload.
     if (nameLength > MAX_ENTRY_NAME_BYTES) {
       throw new FirmwareFormatError("errPackageEntries");
@@ -128,7 +134,7 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
   if (!manifestRaw) {
     throw new FirmwareFormatError("errPackageEntries");
   }
-  const manifestText = new TextDecoder().decode(manifestRaw);
+  let manifestText: string;
   let manifestJson: {
     manifest?: {
       application?: {
@@ -146,6 +152,7 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
     };
   };
   try {
+    manifestText = new TextDecoder("utf-8", { fatal: true }).decode(manifestRaw);
     manifestJson = JSON.parse(manifestText);
   } catch {
     throw new FirmwareFormatError("errManifestJson");

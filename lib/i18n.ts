@@ -216,7 +216,6 @@ const enGB = {
   errZipDuplicate: "duplicate zip entry {name}",
   errZipTruncated: "truncated zip entry",
   errZipDeflated: "zip entry {name} must be stored, not deflated",
-  errZipSize: "zip entry {name} size mismatch",
   errZipMethod: "unsupported zip method {method} in {name}",
   errNotZip: "not a zip file",
   errPackageEntries: "package must contain exactly manifest.json and the .dat and .bin files it names",

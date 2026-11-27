@@ -194,7 +194,6 @@ export const ko: Record<MessageKey, string> = {
   errZipDuplicate: "중복된 zip 항목 {name}",
   errZipTruncated: "잘린 zip 항목",
   errZipDeflated: "zip 항목 {name}은(는) deflate 압축이 아닌 저장 방식이어야 합니다",
-  errZipSize: "zip 항목 {name}의 크기가 일치하지 않습니다",
   errZipMethod: "{name}에서 지원되지 않는 zip 방식 {method}",
   errNotZip: "zip 파일이 아닙니다",
   errPackageEntries: "패키지에는 manifest.json과 그 안에 명시된 .dat 및 .bin 파일만 포함되어야 합니다",

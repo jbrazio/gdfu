@@ -194,7 +194,6 @@ export const ptPT: Record<MessageKey, string> = {
   errZipDuplicate: "entrada zip duplicada {name}",
   errZipTruncated: "entrada zip truncada",
   errZipDeflated: "a entrada zip {name} tem de estar armazenada, não comprimida (deflate)",
-  errZipSize: "tamanho da entrada zip {name} não corresponde",
   errZipMethod: "método zip {method} não suportado em {name}",
   errNotZip: "não é um ficheiro zip",
   errPackageEntries: "o pacote tem de conter exactamente manifest.json e os ficheiros .dat e .bin nele indicados",

@@ -194,7 +194,6 @@ export const ptBR: Record<MessageKey, string> = {
   errZipDuplicate: "entrada zip duplicada {name}",
   errZipTruncated: "entrada zip truncada",
   errZipDeflated: "a entrada zip {name} deve estar armazenada, não compactada (deflate)",
-  errZipSize: "tamanho da entrada zip {name} não confere",
   errZipMethod: "método zip {method} não suportado em {name}",
   errNotZip: "não é um arquivo zip",
   errPackageEntries: "o pacote deve conter exatamente manifest.json e os arquivos .dat e .bin indicados nele",

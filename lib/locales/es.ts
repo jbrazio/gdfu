@@ -194,7 +194,6 @@ export const es: Record<MessageKey, string> = {
   errZipDuplicate: "entrada zip duplicada {name}",
   errZipTruncated: "entrada zip truncada",
   errZipDeflated: "la entrada zip {name} debe estar almacenada, no comprimida (deflate)",
-  errZipSize: "el tamaño de la entrada zip {name} no coincide",
   errZipMethod: "método zip {method} no compatible en {name}",
   errNotZip: "no es un archivo zip",
   errPackageEntries: "el paquete debe contener exactamente manifest.json y los archivos .dat y .bin que este indica",

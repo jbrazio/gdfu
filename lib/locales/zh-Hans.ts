@@ -194,7 +194,6 @@ export const zhHans: Record<MessageKey, string> = {
   errZipDuplicate: "重复的 zip 条目 {name}",
   errZipTruncated: "zip 条目已截断",
   errZipDeflated: "zip 条目 {name} 必须以存储方式保存，不能使用 deflate 压缩",
-  errZipSize: "zip 条目 {name} 大小不匹配",
   errZipMethod: "{name} 中不支持的 zip 压缩方法 {method}",
   errNotZip: "不是 zip 文件",
   errPackageEntries: "包中必须恰好包含 manifest.json 及其指定的 .dat 和 .bin 文件",

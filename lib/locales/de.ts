@@ -194,7 +194,6 @@ export const de: Record<MessageKey, string> = {
   errZipDuplicate: "doppelter zip-Eintrag {name}",
   errZipTruncated: "abgeschnittener zip-Eintrag",
   errZipDeflated: "zip-Eintrag {name} muss unkomprimiert gespeichert sein, nicht mit Deflate",
-  errZipSize: "Größe des zip-Eintrags {name} stimmt nicht überein",
   errZipMethod: "nicht unterstützte zip-Methode {method} in {name}",
   errNotZip: "keine zip-Datei",
   errPackageEntries: "das Paket muss genau manifest.json sowie die darin genannten .dat- und .bin-Dateien enthalten",
