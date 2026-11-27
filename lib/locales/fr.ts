@@ -198,7 +198,7 @@ export const fr: Record<MessageKey, string> = {
   errZipSize: "taille de l'entrée zip {name} incohérente",
   errZipMethod: "méthode zip {method} non prise en charge dans {name}",
   errNotZip: "ce n'est pas un fichier zip",
-  errPackageEntries: "le package doit contenir manifest.json, firmware.dat et firmware.bin",
+  errPackageEntries: "le package doit contenir exactement manifest.json et les fichiers .dat et .bin qu'il indique",
   errManifestJson: "manifest.json n'est pas un JSON valide",
   errManifestInit: "manifest.json ne contient pas les données de l'init packet de l'application",
   errCrcMismatch: "CRC16 de l'image incohérent : manifest {expected}, calculé {actual}",

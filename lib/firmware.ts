@@ -5,11 +5,10 @@ import { AppError } from "@/lib/i18n";
  * Firmware package handling: Nordic DFU zip parsing, validation, GitHub
  * release listing, and offline persistence via IndexedDB.
  *
- * Accepted packages are Adafruit-nrfutil style zips containing
- * manifest.json + firmware.dat (init packet) + firmware.bin (image),
- * matching the hardware-verified flasher flow. Zip extraction uses the
- * platform CompressionStream("deflate-raw") API; no third-party zip
- * dependency.
+ * Accepted packages are Nordic DFU zips (Adafruit-nrfutil style) holding
+ * exactly manifest.json plus the init packet (.dat) and image (.bin) files
+ * that manifest.application names, all stored uncompressed, matching the
+ * hardware-verified flasher flow. No third-party zip dependency.
  */
 
 /** Nordic CRC16 (init 0xFFFF, poly 0x1021 reflected variant per nrfutil). */
@@ -48,15 +47,14 @@ export interface FirmwareImage {
 
 export class FirmwareFormatError extends AppError {}
 
-async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
-  const stream = new Blob([bytes as BlobPart])
-    .stream()
-    .pipeThrough(new CompressionStream("deflate-raw"));
-  const buffer = await new Response(stream).arrayBuffer();
-  return new Uint8Array(buffer);
-}
+// Longest entry name the proxy accepts.
+const MAX_ENTRY_NAME_BYTES = 63;
 
-/** Minimal stored/deflate zip reader: enough for adafruit-nrfutil output. */
+/**
+ * Minimal stored-only zip reader: enough for adafruit-nrfutil output. Entry
+ * names are not checked here; parseFirmwareZip validates them against the
+ * names that manifest.json declares.
+ */
 export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uint8Array>> {
   const view = new DataView(file);
   const entries = new Map<string, Uint8Array>();
@@ -71,16 +69,13 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
     }
     const method = view.getUint16(offset + 8, true);
     const compressedSize = view.getUint32(offset + 18, true);
-    const uncompressedSize = view.getUint32(offset + 22, true);
     const nameLength = view.getUint16(offset + 26, true);
     const extraLength = view.getUint16(offset + 28, true);
     const nameStart = offset + 30;
     const name = encoder.decode(new Uint8Array(file, nameStart, nameLength));
-    // Mirror the proxy: a package is exactly manifest.json plus firmware.dat and
-    // firmware.bin (or ZephCore's zephyr.dat and zephyr.bin). Anything else (extra files, directories, paths, repeats)
-    // is rejected here rather than after a long BLE upload.
-    if (!REQUIRED_PACKAGE_ENTRIES.has(name)) {
-      throw new FirmwareFormatError("errZipUnexpected", { name: JSON.stringify(name) });
+    // Mirror the proxy: long names are rejected here rather than after a long BLE upload.
+    if (nameLength > MAX_ENTRY_NAME_BYTES) {
+      throw new FirmwareFormatError("errPackageEntries");
     }
     if (entries.has(name)) {
       throw new FirmwareFormatError("errZipDuplicate", { name });
@@ -89,23 +84,15 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
     if (dataStart + compressedSize > file.byteLength) {
       throw new FirmwareFormatError("errZipTruncated");
     }
-    const raw = new Uint8Array(file, dataStart, compressedSize);
-    let content: Uint8Array;
-    if (method === 0) {
-      content = raw.slice();
-    } else if (method === 8 && REQUIRED_PACKAGE_ENTRIES.has(name)) {
-      // Match the proxy validator: packages must carry the required files
-      // uncompressed so the constrained proxy can verify them without an
-      // inflater.
+    // Match the proxy validator: every entry must be uncompressed so the
+    // constrained proxy can verify the package without an inflater.
+    if (method === 8) {
       throw new FirmwareFormatError("errZipDeflated", { name });
-    } else if (method === 8) {
-      content = await inflateRaw(raw);
-      if (content.length !== uncompressedSize) {
-        throw new FirmwareFormatError("errZipSize", { name });
-      }
-    } else {
+    }
+    if (method !== 0) {
       throw new FirmwareFormatError("errZipMethod", { method, name });
     }
+    const content = new Uint8Array(file, dataStart, compressedSize).slice();
     entries.set(name, content);
     offset = dataStart + compressedSize;
   }
@@ -118,14 +105,6 @@ export async function readZipEntries(file: ArrayBuffer): Promise<Map<string, Uin
 const KNOWN_DEVICE_TYPES = new Set([82]); // Heltec T114 (PCA10059-style type 0x52)
 // GFSK target family shared with the proxy validator (proxy/src/gdfu_file.h).
 const KNOWN_DEVICE_REVISIONS = new Set([65535]);
-const REQUIRED_PACKAGE_ENTRIES = new Set([
-  "manifest.json",
-  "firmware.dat",
-  "firmware.bin",
-  // ZephCore (MeshCore Zephyr port) ships the same Nordic DFU package with zephyr.* names.
-  "zephyr.dat",
-  "zephyr.bin",
-]);
 
 /**
  * Parse and validate a Nordic DFU zip. Throws FirmwareFormatError with a
@@ -135,16 +114,14 @@ const REQUIRED_PACKAGE_ENTRIES = new Set([
 export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise<FirmwareImage> {
   const entries = await readZipEntries(file);
   const manifestRaw = entries.get("manifest.json");
-  const prefix = entries.has("zephyr.bin") ? "zephyr" : "firmware";
-  const initData = entries.get(`${prefix}.dat`);
-  const appData = entries.get(`${prefix}.bin`);
-  // Exactly three entries: rejects mixed firmware.*/zephyr.* packages.
-  if (!manifestRaw || !initData || !appData || entries.size !== 3) {
+  if (!manifestRaw) {
     throw new FirmwareFormatError("errPackageEntries");
   }
   let manifestJson: {
     manifest?: {
       application?: {
+        bin_file?: unknown;
+        dat_file?: unknown;
         init_packet_data?: {
           device_type?: number;
           device_revision?: number;
@@ -160,6 +137,22 @@ export async function parseFirmwareZip(name: string, file: ArrayBuffer): Promise
     manifestJson = JSON.parse(new TextDecoder().decode(manifestRaw));
   } catch {
     throw new FirmwareFormatError("errManifestJson");
+  }
+  const datName = manifestJson.manifest?.application?.dat_file;
+  const binName = manifestJson.manifest?.application?.bin_file;
+  // Exactly three entries (manifest.json plus the two named files), pairwise distinct.
+  if (
+    typeof datName !== "string" ||
+    typeof binName !== "string" ||
+    new Set([datName, binName, "manifest.json"]).size !== 3 ||
+    entries.size !== 3
+  ) {
+    throw new FirmwareFormatError("errPackageEntries");
+  }
+  const initData = entries.get(datName);
+  const appData = entries.get(binName);
+  if (!initData?.length || !appData) {
+    throw new FirmwareFormatError("errPackageEntries");
   }
   const packet = manifestJson.manifest?.application?.init_packet_data;
   if (!packet) {

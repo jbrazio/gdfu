@@ -198,7 +198,7 @@ export const ko: Record<MessageKey, string> = {
   errZipSize: "zip 항목 {name}의 크기가 일치하지 않습니다",
   errZipMethod: "{name}에서 지원되지 않는 zip 방식 {method}",
   errNotZip: "zip 파일이 아닙니다",
-  errPackageEntries: "패키지에는 manifest.json, firmware.dat, firmware.bin이 포함되어야 합니다",
+  errPackageEntries: "패키지에는 manifest.json과 그 안에 명시된 .dat 및 .bin 파일만 포함되어야 합니다",
   errManifestJson: "manifest.json이 유효한 JSON이 아닙니다",
   errManifestInit: "manifest.json에 애플리케이션 init packet 데이터가 없습니다",
   errCrcMismatch: "이미지 CRC16 불일치: manifest {expected}, 계산값 {actual}",

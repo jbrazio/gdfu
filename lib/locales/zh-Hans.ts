@@ -198,7 +198,7 @@ export const zhHans: Record<MessageKey, string> = {
   errZipSize: "zip 条目 {name} 大小不匹配",
   errZipMethod: "{name} 中不支持的 zip 压缩方法 {method}",
   errNotZip: "不是 zip 文件",
-  errPackageEntries: "包中必须包含 manifest.json、firmware.dat 和 firmware.bin",
+  errPackageEntries: "包中必须恰好包含 manifest.json 及其指定的 .dat 和 .bin 文件",
   errManifestJson: "manifest.json 不是有效的 JSON",
   errManifestInit: "manifest.json 缺少应用程序的 init packet 数据",
   errCrcMismatch: "镜像 CRC16 不匹配：manifest 为 {expected}，计算值为 {actual}",

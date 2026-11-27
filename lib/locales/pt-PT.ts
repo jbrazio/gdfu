@@ -198,7 +198,7 @@ export const ptPT: Record<MessageKey, string> = {
   errZipSize: "tamanho da entrada zip {name} não corresponde",
   errZipMethod: "método zip {method} não suportado em {name}",
   errNotZip: "não é um ficheiro zip",
-  errPackageEntries: "o pacote tem de conter manifest.json, firmware.dat e firmware.bin",
+  errPackageEntries: "o pacote tem de conter exactamente manifest.json e os ficheiros .dat e .bin nele indicados",
   errManifestJson: "manifest.json não é JSON válido",
   errManifestInit: "manifest.json não contém os dados do init packet da aplicação",
   errCrcMismatch: "CRC16 da imagem não corresponde: manifest {expected}, calculado {actual}",

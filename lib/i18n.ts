@@ -220,7 +220,7 @@ const enGB = {
   errZipSize: "zip entry {name} size mismatch",
   errZipMethod: "unsupported zip method {method} in {name}",
   errNotZip: "not a zip file",
-  errPackageEntries: "package must contain manifest.json, firmware.dat and firmware.bin",
+  errPackageEntries: "package must contain exactly manifest.json and the .dat and .bin files it names",
   errManifestJson: "manifest.json is not valid JSON",
   errManifestInit: "manifest.json lacks application init packet data",
   errCrcMismatch: "image CRC16 mismatch: manifest {expected}, computed {actual}",

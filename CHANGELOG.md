@@ -7,7 +7,7 @@ All notable changes to this project are documented in this file. Format inspired
 ### Added
 
 - The tutorial can be opened again from the About dialog.
-- Firmware ZIPs from ZephCore (MeshCore Zephyr port), which contain `zephyr.bin` and `zephyr.dat`, can be imported and flashed.
+- Firmware ZIPs can now be imported and flashed whenever their `manifest.json` names the `.dat` and `.bin` files, so any Nordic DFU package works.
 
 ## [2026.11.40] - 2026-11-24
 

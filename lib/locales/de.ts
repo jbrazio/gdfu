@@ -198,7 +198,7 @@ export const de: Record<MessageKey, string> = {
   errZipSize: "Größe des zip-Eintrags {name} stimmt nicht überein",
   errZipMethod: "nicht unterstützte zip-Methode {method} in {name}",
   errNotZip: "keine zip-Datei",
-  errPackageEntries: "das Paket muss manifest.json, firmware.dat und firmware.bin enthalten",
+  errPackageEntries: "das Paket muss genau manifest.json sowie die darin genannten .dat- und .bin-Dateien enthalten",
   errManifestJson: "manifest.json ist kein gültiges JSON",
   errManifestInit: "manifest.json enthält keine Init-Packet-Daten der Anwendung",
   errCrcMismatch: "Image-CRC16 stimmt nicht überein: manifest {expected}, berechnet {actual}",
