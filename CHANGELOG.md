@@ -8,6 +8,7 @@ All notable changes to this project are documented in this file. Format inspired
 
 - The tutorial can be opened again from the About dialog.
 - Firmware ZIPs are accepted whatever `.dat` and `.bin` file names their `manifest.json` gives, so ZephCore and other renamed packages can be imported and flashed.
+- The screen stays on during an update, so the phone no longer locks or sleeps mid-flash.
 
 ## [2026.11.40] - 2026-11-24
 
