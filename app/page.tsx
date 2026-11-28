@@ -9,6 +9,7 @@
  */
 
 import { App } from "@capacitor/app";
+import { KeepAwake } from "@capacitor-community/keep-awake";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import Paper from "@mui/material/Paper";
@@ -323,7 +324,12 @@ export default function Home() {
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+    // Keep the screen on while flashing so the phone doesn't sleep mid-update.
+    KeepAwake.keepAwake().catch(() => {});
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+      KeepAwake.allowSleep().catch(() => {});
+    };
   }, [dfuActive]);
 
   const canStart = useMemo(
